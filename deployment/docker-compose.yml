@@ -1,0 +1,77 @@
+services:
+
+  product-app:
+    build:
+      context: ../product
+      dockerfile: Dockerfile
+    container_name: product-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      pricing-mock:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      PRICING_API_URL: http://pricing-mock:9090
+    ports:
+      - "8080:8080"
+    networks:
+      - product-net
+
+  pricing-mock:
+    build:
+      context: ../pricingmock
+      dockerfile: Dockerfile
+    container_name: pricing-mock
+    ports:
+      - "9090:9090"
+    networks:
+      - product-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9090/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  postgres:
+    image: postgres:16
+    container_name: product-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    networks:
+      - product-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+    container_name: product-elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    ports:
+      - "9200:9200"
+    networks:
+      - product-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+networks:
+  product-net:
+    driver: bridge
