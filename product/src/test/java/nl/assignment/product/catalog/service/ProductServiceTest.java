@@ -90,6 +90,27 @@ class ProductServiceTest {
         assertThatThrownBy(() -> service.getBySku("ABC"))
                 .isInstanceOf(EntityNotFoundException.class);
     }
+    
+    @Test
+    void should_delete_product_from_database_and_elasticsearch() {
+        Product product = new Product();
+        product.setId(1001L);
+        product.setSku("ABC123");
+
+        when(productRepo.findBySku("ABC123")).thenReturn(Optional.of(product));
+        service.deleteProduct("ABC123");
+
+        verify(productRepo).delete(product);
+        verify(elasticsearchOperations).delete("1001", ProductDocument.class);
+    }
+
+    @Test
+    void should_throw_exception_when_product_not_found() {
+        when(productRepo.findBySku("ABC")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.deleteProduct("ABC"))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
 
     @Test
     void should_search_products() {

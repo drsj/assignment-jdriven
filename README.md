@@ -91,7 +91,9 @@ Product-service (port 8080)
         PATCH /api/products/APL-IPH-18/quantity
         {
             "quantity": -3
-        }  
+        }
+    Delete product by SKU:
+        DELETE /api/products/APL-IPH-18  
 
     Get product by SKU:
         GET /api/products?api/products/APL-IPH-18

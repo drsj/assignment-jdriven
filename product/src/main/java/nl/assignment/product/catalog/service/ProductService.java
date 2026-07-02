@@ -133,6 +133,16 @@ public class ProductService {
         product.setQuantity(updated);
         productRepo.save(product);
     }
+    
+    /**
+     * Deletes a product by its SKU from both PostgreSQL and Elasticsearch.
+     */
+    @Transactional
+    public void deleteProduct(String sku) {
+        Product product = findProductOrThrow(sku);
+        productRepo.delete(product);
+        elasticsearchOperations.delete(product.getId().toString(), ProductDocument.class);
+    }
 
     /**
      * Retrieve a product by SKU.

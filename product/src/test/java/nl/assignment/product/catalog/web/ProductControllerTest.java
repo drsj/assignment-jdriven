@@ -11,6 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
@@ -123,6 +126,23 @@ class ProductControllerTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated"));
+    }
+    
+    @Test
+    void should_delete_product() throws Exception {
+        Mockito.doNothing().when(service).deleteProduct("APL-IPH-18");
+
+        mvc.perform(delete("/api/products/APL-IPH-18"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void should_return_not_found_when_deleting_non_existing_product() throws Exception {
+        Mockito.doThrow(new EntityNotFoundException("ABC"))
+                .when(service).deleteProduct("ABC");
+
+        mvc.perform(delete("/api/products/ABC"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

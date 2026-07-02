@@ -52,7 +52,6 @@ public class ProductController {
      * - Delegates the update to the ProductService.
      * - Returns HTTP 204 (No Content) when the update succeeds.
      *
-     * No DTO is returned because this is a void operation.
      */
     @PatchMapping("/{sku}/quantity")
     public ResponseEntity<Void> updateQuantity(
@@ -60,6 +59,21 @@ public class ProductController {
             @RequestBody UpdateQuantityRequest request) {
 
         service.updateQuantity(sku, request.quantity());
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * Deletes a product identified by its SKU.
+     *
+     *  Delegates the deletion logic to the ProductService, which ensures both the database record
+     *  and the corresponding Elasticsearch document are removed.
+     * - Delegates the update to the ProductService.
+     * - Returns HTTP 204 (No Content) when the deletion is succeeds.
+     * - Returns HTTP 404 (Not Found) when the deletion fails.
+     */
+    @DeleteMapping("/{sku}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable String sku) {
+        service.deleteProduct(sku);
         return ResponseEntity.noContent().build();
     }
 
@@ -84,9 +98,6 @@ public class ProductController {
      * - Identifies the product by its database ID.
      * - Converts the incoming DTO into a Product entity.
      * - Delegates the update to the ProductService.
-     *
-     * After refactoring:
-     * - Returns a ProductResponse DTO instead of a Product entity.
      */
     @PutMapping("/{id}")
     public ProductResponse update(@PathVariable Long id, @RequestBody ProductRequest request) {
@@ -107,9 +118,6 @@ public class ProductController {
      * Examples:
      *   /api/products?page=1&size=10
      *   /api/products?sort=name,asc
-     *
-     * After refactoring:
-     * - Returns Page<ProductResponse> instead of Page<Product>.
      */
     @GetMapping
     public Page<ProductResponse> list(
@@ -147,10 +155,6 @@ public class ProductController {
      * - relevance ranking
      * - prefix search (autocomplete-like behavior)
      * - phrase search
-     *
-     * After refactoring:
-     * - Returns Page<ProductSearchResponse> instead of Page<ProductDocument>.
-     * - The controller no longer knows about Elasticsearch document types.
      */
     @GetMapping("/search")
     public Page<ProductSearchResponse> search(@RequestParam("q") String query, Pageable pageable) {
