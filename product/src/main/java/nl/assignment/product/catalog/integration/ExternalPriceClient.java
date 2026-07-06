@@ -2,6 +2,7 @@ package nl.assignment.product.catalog.integration;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 
@@ -13,8 +14,10 @@ public class ExternalPriceClient {
 
     private final WebClient client;
 
-    public ExternalPriceClient(WebClient.Builder builder) {
-        this.client = builder.baseUrl("http://pricing-mock:9090").build();
+    public ExternalPriceClient(WebClient.Builder builder, PricingProperties props) {
+        this.client = builder
+                .baseUrl(props.getUrl())
+                .build();
     }
 
     public ExternalPriceDto getPrice(String sku, BigDecimal currentPrice) {
