@@ -1,8 +1,12 @@
 spring:
+  application:
+    name: product
+
   datasource:
     url: jdbc:postgresql://postgres:5432/productdb
     username: product
     password: product
+
   jpa:
     hibernate:
       ddl-auto: update
